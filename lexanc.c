@@ -48,14 +48,48 @@ void skipblanks ()
 /* Get identifiers and reserved words */
 TOKEN identifier (TOKEN tok)
   {
+    printf("identifier\n");
     }
 
+/* Used to parse strings: 'hello' */
 TOKEN getstring (TOKEN tok)
   {
+    printf("string\n");
+    char str[15];
+    int c;
+    int idx = 0;
+    
+    /* consume the opening single quote */
+    c = getchar();  /* this should be the opening ' */
+    
+    /* read characters until we find the closing quote */
+    while ((c = peekchar()) != EOF && c != '\'') {
+      c = getchar();
+      if (idx < 14) {  /* leave room for null terminator */
+        str[idx++] = c;
+      }
     }
+    
+    /* consume the closing single quote */
+    if (c == '\'') {
+      getchar();
+    }
+    
+    str[idx] = '\0';
+    tok->tokentype = STRINGTOK;
+    tok->basicdt = STRINGTYPE;
+    strcpy(tok->stringval, str);  /* store the string in the token */
+    return (tok);
+  }
 
+
+/* Used to parse special characters */
 TOKEN special (TOKEN tok)
   {
+
+
+
+
     }
 
 /* Get and convert unsigned numbers of all types. */
