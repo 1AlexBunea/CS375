@@ -1,0 +1,32 @@
+Started scanner test.
+tokentype:  2  which:   19      program
+tokentype:  3  value:            graph1
+tokentype:  1  which:    4            (
+tokentype:  3  value:            output
+tokentype:  1  which:    5            )
+tokentype:  1  which:    2            ;
+tokentype:  2  which:   27          var
+tokentype:  3  value:                 i
+tokentype:  1  which:    1            ,
+tokentype:  3  value:               lim
+tokentype:  1  which:    3            :
+tokentype:  3  value:           integer
+tokentype:  1  which:    2            ;
+tokentype:  2  which:    2        begin
+tokentype:  3  value:               lim
+tokentype:  0  which:    5           :=
+tokentype:  5  type:     0            7
+tokentype:  1  which:    2            ;
+tokentype:  2  which:   10          for
+tokentype:  3  value:                 i
+tokentype:  0  which:    5           :=
+tokentype:  5  type:     0            0
+tokentype:  2  which:   24           to
+tokentype:  3  value:               lim
+tokentype:  2  which:    5           do
+tokentype:  3  value:           writeln
+tokentype:  1  which:    4            (
+tokentype:  4  value:                 *
+tokentype:  1  which:    5            )
+tokentype:  2  which:    8          end
+tokentype:  0  which:   13            .

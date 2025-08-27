@@ -1,0 +1,341 @@
+Started scanner test.
+tokentype:  2  which:   19      program
+tokentype:  3  value:            graph1
+tokentype:  1  which:    4            (
+tokentype:  3  value:            output
+tokentype:  1  which:    5            )
+tokentype:  1  which:    2            ;
+tokentype:  2  which:   14        label
+tokentype:  5  type:     0         1492
+tokentype:  1  which:    1            ,
+tokentype:  5  type:     0         1776
+tokentype:  1  which:    2            ;
+tokentype:  2  which:   25         type
+tokentype:  3  value:           complex
+tokentype:  0  which:    6            =
+tokentype:  2  which:   20       record
+tokentype:  3  value:                re
+tokentype:  1  which:    1            ,
+tokentype:  3  value:                im
+tokentype:  1  which:    3            :
+tokentype:  3  value:              real
+tokentype:  2  which:    8          end
+tokentype:  1  which:    2            ;
+tokentype:  3  value:             color
+tokentype:  0  which:    6            =
+tokentype:  1  which:    4            (
+tokentype:  3  value:               red
+tokentype:  1  which:    1            ,
+tokentype:  3  value:             white
+tokentype:  1  which:    1            ,
+tokentype:  3  value:              blue
+tokentype:  1  which:    5            )
+tokentype:  1  which:    2            ;
+tokentype:  3  value:                pp
+tokentype:  0  which:    6            =
+tokentype:  0  which:   12            ^
+tokentype:  3  value:            person
+tokentype:  1  which:    2            ;
+tokentype:  3  value:            person
+tokentype:  0  which:    6            =
+tokentype:  2  which:   20       record
+tokentype:  3  value:               age
+tokentype:  1  which:    3            :
+tokentype:  3  value:           integer
+tokentype:  1  which:    2            ;
+tokentype:  3  value:            friend
+tokentype:  1  which:    3            :
+tokentype:  3  value:                pp
+tokentype:  1  which:    2            ;
+tokentype:  3  value:          location
+tokentype:  1  which:    3            :
+tokentype:  3  value:           complex
+tokentype:  1  which:    2            ;
+tokentype:  3  value:          favorite
+tokentype:  1  which:    3            :
+tokentype:  3  value:             color
+tokentype:  1  which:    2            ;
+tokentype:  3  value:            salary
+tokentype:  1  which:    3            :
+tokentype:  3  value:              real
+tokentype:  2  which:    8          end
+tokentype:  1  which:    2            ;
+tokentype:  2  which:   27          var
+tokentype:  3  value:                 c
+tokentype:  1  which:    1            ,
+tokentype:  3  value:                 d
+tokentype:  1  which:    3            :
+tokentype:  3  value:           complex
+tokentype:  1  which:    2            ;
+tokentype:  3  value:                 i
+tokentype:  1  which:    1            ,
+tokentype:  3  value:               sum
+tokentype:  1  which:    3            :
+tokentype:  3  value:           integer
+tokentype:  1  which:    2            ;
+tokentype:  3  value:                ac
+tokentype:  1  which:    3            :
+tokentype:  2  which:    1        array
+tokentype:  1  which:    6            [
+tokentype:  5  type:     0            1
+tokentype:  1  which:    8           ..
+tokentype:  5  type:     0           10
+tokentype:  1  which:    7            ]
+tokentype:  2  which:   16           of
+tokentype:  3  value:           complex
+tokentype:  1  which:    2            ;
+tokentype:  3  value:               aco
+tokentype:  1  which:    3            :
+tokentype:  2  which:    1        array
+tokentype:  1  which:    6            [
+tokentype:  5  type:     0            1
+tokentype:  1  which:    8           ..
+tokentype:  5  type:     0           10
+tokentype:  1  which:    1            ,
+tokentype:  3  value:             color
+tokentype:  1  which:    7            ]
+tokentype:  2  which:   16           of
+tokentype:  3  value:             color
+tokentype:  1  which:    2            ;
+tokentype:  3  value:              john
+tokentype:  1  which:    1            ,
+tokentype:  3  value:              mary
+tokentype:  1  which:    1            ,
+tokentype:  3  value:              fred
+tokentype:  1  which:    1            ,
+tokentype:  3  value:               ptr
+tokentype:  1  which:    3            :
+tokentype:  3  value:                pp
+tokentype:  1  which:    2            ;
+tokentype:  3  value:            people
+tokentype:  1  which:    3            :
+tokentype:  2  which:    1        array
+tokentype:  1  which:    6            [
+tokentype:  5  type:     0            1
+tokentype:  1  which:    8           ..
+tokentype:  5  type:     0           20
+tokentype:  1  which:    7            ]
+tokentype:  2  which:   16           of
+tokentype:  3  value:            person
+tokentype:  1  which:    2            ;
+tokentype:  2  which:    2        begin
+tokentype:  3  value:               new
+tokentype:  1  which:    4            (
+tokentype:  3  value:              john
+tokentype:  1  which:    5            )
+tokentype:  1  which:    2            ;
+tokentype:  3  value:               new
+tokentype:  1  which:    4            (
+tokentype:  3  value:              mary
+tokentype:  1  which:    5            )
+tokentype:  1  which:    2            ;
+tokentype:  3  value:               new
+tokentype:  1  which:    4            (
+tokentype:  3  value:              fred
+tokentype:  1  which:    5            )
+tokentype:  1  which:    2            ;
+tokentype:  3  value:              john
+tokentype:  0  which:   12            ^
+tokentype:  0  which:   13            .
+tokentype:  3  value:          favorite
+tokentype:  0  which:    5           :=
+tokentype:  3  value:              blue
+tokentype:  1  which:    2            ;
+tokentype:  3  value:              john
+tokentype:  0  which:   12            ^
+tokentype:  0  which:   13            .
+tokentype:  3  value:               age
+tokentype:  0  which:    5           :=
+tokentype:  5  type:     0           19
+tokentype:  1  which:    2            ;
+tokentype:  5  type:     0         1492
+tokentype:  1  which:    3            :
+tokentype:  3  value:              john
+tokentype:  0  which:   12            ^
+tokentype:  0  which:   13            .
+tokentype:  3  value:            friend
+tokentype:  0  which:    5           :=
+tokentype:  3  value:              mary
+tokentype:  1  which:    2            ;
+tokentype:  3  value:              john
+tokentype:  0  which:   12            ^
+tokentype:  0  which:   13            .
+tokentype:  3  value:            salary
+tokentype:  0  which:    5           :=
+tokentype:  5  type:     1 4.000000e+04
+tokentype:  1  which:    2            ;
+tokentype:  3  value:              john
+tokentype:  0  which:   12            ^
+tokentype:  0  which:   13            .
+tokentype:  3  value:          location
+tokentype:  0  which:   13            .
+tokentype:  3  value:                re
+tokentype:  0  which:    5           :=
+tokentype:  5  type:     0            3
+tokentype:  1  which:    2            ;
+tokentype:  3  value:              mary
+tokentype:  0  which:   12            ^
+tokentype:  0  which:   13            .
+tokentype:  3  value:               age
+tokentype:  0  which:    5           :=
+tokentype:  5  type:     0           21
+tokentype:  1  which:    2            ;
+tokentype:  3  value:              mary
+tokentype:  0  which:   12            ^
+tokentype:  0  which:   13            .
+tokentype:  3  value:            friend
+tokentype:  0  which:    5           :=
+tokentype:  3  value:              fred
+tokentype:  1  which:    2            ;
+tokentype:  5  type:     0         1776
+tokentype:  1  which:    3            :
+tokentype:  3  value:              fred
+tokentype:  0  which:   12            ^
+tokentype:  0  which:   13            .
+tokentype:  3  value:               age
+tokentype:  0  which:    5           :=
+tokentype:  5  type:     0           20
+tokentype:  1  which:    2            ;
+tokentype:  3  value:              fred
+tokentype:  0  which:   12            ^
+tokentype:  0  which:   13            .
+tokentype:  3  value:            friend
+tokentype:  0  which:    5           :=
+tokentype:  2  which:   15          nil
+tokentype:  1  which:    2            ;
+tokentype:  3  value:              john
+tokentype:  0  which:   12            ^
+tokentype:  0  which:   13            .
+tokentype:  3  value:            friend
+tokentype:  0  which:   12            ^
+tokentype:  0  which:   13            .
+tokentype:  3  value:            friend
+tokentype:  0  which:   12            ^
+tokentype:  0  which:   13            .
+tokentype:  3  value:          location
+tokentype:  0  which:   13            .
+tokentype:  3  value:                im
+tokentype:  0  which:    5           :=
+tokentype:  5  type:     1 4.500000e+00
+tokentype:  1  which:    2            ;
+tokentype:  3  value:                ac
+tokentype:  1  which:    6            [
+tokentype:  5  type:     0            7
+tokentype:  1  which:    7            ]
+tokentype:  0  which:   13            .
+tokentype:  3  value:                re
+tokentype:  0  which:    5           :=
+tokentype:  3  value:              john
+tokentype:  0  which:   12            ^
+tokentype:  0  which:   13            .
+tokentype:  3  value:            salary
+tokentype:  1  which:    2            ;
+tokentype:  3  value:               ptr
+tokentype:  0  which:    5           :=
+tokentype:  3  value:              john
+tokentype:  1  which:    2            ;
+tokentype:  3  value:               sum
+tokentype:  0  which:    5           :=
+tokentype:  5  type:     0            0
+tokentype:  1  which:    2            ;
+tokentype:  3  value:                 i
+tokentype:  0  which:    5           :=
+tokentype:  5  type:     0            1
+tokentype:  1  which:    2            ;
+tokentype:  2  which:   28        while
+tokentype:  3  value:               ptr
+tokentype:  0  which:    7           <>
+tokentype:  2  which:   15          nil
+tokentype:  2  which:    5           do
+tokentype:  2  which:    2        begin
+tokentype:  3  value:               sum
+tokentype:  0  which:    5           :=
+tokentype:  3  value:               sum
+tokentype:  0  which:    1            +
+tokentype:  3  value:               ptr
+tokentype:  0  which:   12            ^
+tokentype:  0  which:   13            .
+tokentype:  3  value:               age
+tokentype:  1  which:    2            ;
+tokentype:  3  value:            people
+tokentype:  1  which:    6            [
+tokentype:  3  value:                 i
+tokentype:  1  which:    7            ]
+tokentype:  0  which:   13            .
+tokentype:  3  value:               age
+tokentype:  0  which:    5           :=
+tokentype:  3  value:               ptr
+tokentype:  0  which:   12            ^
+tokentype:  0  which:   13            .
+tokentype:  3  value:               age
+tokentype:  1  which:    2            ;
+tokentype:  3  value:               aco
+tokentype:  1  which:    6            [
+tokentype:  3  value:                 i
+tokentype:  1  which:    1            ,
+tokentype:  3  value:             white
+tokentype:  1  which:    7            ]
+tokentype:  0  which:    5           :=
+tokentype:  3  value:              john
+tokentype:  0  which:   12            ^
+tokentype:  0  which:   13            .
+tokentype:  3  value:          favorite
+tokentype:  1  which:    2            ;
+tokentype:  3  value:               ptr
+tokentype:  0  which:    5           :=
+tokentype:  3  value:               ptr
+tokentype:  0  which:   12            ^
+tokentype:  0  which:   13            .
+tokentype:  3  value:            friend
+tokentype:  1  which:    2            ;
+tokentype:  3  value:                 i
+tokentype:  0  which:    5           :=
+tokentype:  3  value:                 i
+tokentype:  0  which:    1            +
+tokentype:  5  type:     0            1
+tokentype:  2  which:    8          end
+tokentype:  1  which:    2            ;
+tokentype:  3  value:             write
+tokentype:  1  which:    4            (
+tokentype:  4  value:              i = 
+tokentype:  1  which:    5            )
+tokentype:  1  which:    2            ;
+tokentype:  3  value:           writeln
+tokentype:  1  which:    4            (
+tokentype:  3  value:                 i
+tokentype:  1  which:    5            )
+tokentype:  1  which:    2            ;
+tokentype:  3  value:             write
+tokentype:  1  which:    4            (
+tokentype:  4  value:    Sum of ages = 
+tokentype:  1  which:    5            )
+tokentype:  1  which:    2            ;
+tokentype:  3  value:           writeln
+tokentype:  1  which:    4            (
+tokentype:  3  value:               sum
+tokentype:  1  which:    5            )
+tokentype:  1  which:    2            ;
+tokentype:  3  value:             write
+tokentype:  1  which:    4            (
+tokentype:  4  value:    Fred loc im = 
+tokentype:  1  which:    5            )
+tokentype:  1  which:    2            ;
+tokentype:  3  value:           writeln
+tokentype:  1  which:    4            (
+tokentype:  3  value:              fred
+tokentype:  0  which:   12            ^
+tokentype:  0  which:   13            .
+tokentype:  3  value:          location
+tokentype:  0  which:   13            .
+tokentype:  3  value:                im
+tokentype:  1  which:    5            )
+tokentype:  1  which:    2            ;
+tokentype:  2  which:   13           if
+tokentype:  3  value:               sum
+tokentype:  0  which:    8            <
+tokentype:  5  type:     0            3
+tokentype:  2  which:   23         then
+tokentype:  2  which:   12         goto
+tokentype:  5  type:     0         1776
+tokentype:  2  which:    8          end
+tokentype:  0  which:   13            .

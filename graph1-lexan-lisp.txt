@@ -1,0 +1,138 @@
+rat% lisp
+GCL (GNU Common Lisp)  2.6.12 CLtL1    Fri Apr 22 15:51:11 UTC 2016
+Source License: LGPL(gcl,gmp), GPL(unexec,bfd,xgcl)
+Binary License:  GPL due to GPL'ed components: (XGCL READLINE UNEXEC)
+Modifications of this banner must retain notice of a compatible license
+Dedicated to the memory of W. Schelter
+
+Use (help) to get some basic information on how to use GCL.
+Temporary directory for compiler files:
+/tmp/
+
+>(load "cs375/scanner.lsp")
+;; Loading "cs375/scanner.lsp"
+;; Finished loading "cs375/scanner.lsp"
+T
+
+>(load "cs375/tokendefs.lsp")
+;; Loading "cs375/tokendefs.lsp"
+;; Finished loading "cs375/tokendefs.lsp"
+T
+
+>(load "cs375/lexan.lsp")
+;; Loading "cs375/lexan.lsp"
+;; Finished loading "cs375/lexan.lsp"
+T
+
+>(read-file "cs375/graph1.pas")
+File read.
+0
+
+>(test-scanner)
+RESERVED           19  PROGRAM
+IDENTIFIERTOK           graph1
+DELIMITER            4  (
+IDENTIFIERTOK           output
+DELIMITER            5  )
+DELIMITER            2  ;
+RESERVED             4  CONST
+IDENTIFIERTOK           d
+OPERATOR             6  =
+NUMBERTOK         REAL   6.25000000E-2
+DELIMITER            2  ;
+IDENTIFIERTOK           s
+OPERATOR             6  =
+NUMBERTOK      INTEGER  32
+DELIMITER            2  ;
+IDENTIFIERTOK           h
+OPERATOR             6  =
+NUMBERTOK      INTEGER  34
+DELIMITER            2  ;
+IDENTIFIERTOK           c
+OPERATOR             6  =
+NUMBERTOK         REAL   6.28318000E+0
+DELIMITER            2  ;
+IDENTIFIERTOK           lim
+OPERATOR             6  =
+NUMBERTOK      INTEGER  32
+DELIMITER            2  ;
+RESERVED            27  VAR
+IDENTIFIERTOK           x
+DELIMITER            1  ,
+IDENTIFIERTOK           y
+DELIMITER            3  :
+IDENTIFIERTOK           real
+DELIMITER            2  ;
+IDENTIFIERTOK           i
+DELIMITER            1  ,
+IDENTIFIERTOK           n
+DELIMITER            3  :
+IDENTIFIERTOK           integer
+DELIMITER            2  ;
+RESERVED             2  BEGIN
+RESERVED            10  FOR
+IDENTIFIERTOK           i
+OPERATOR             5  :=
+NUMBERTOK      INTEGER  0
+RESERVED            24  TO
+IDENTIFIERTOK           lim
+RESERVED             5  DO
+RESERVED             2  BEGIN
+IDENTIFIERTOK           x
+OPERATOR             5  :=
+IDENTIFIERTOK           d
+OPERATOR             3  *
+IDENTIFIERTOK           i
+DELIMITER            2  ;
+IDENTIFIERTOK           y
+OPERATOR             5  :=
+IDENTIFIERTOK           exp
+DELIMITER            4  (
+OPERATOR             2  -
+IDENTIFIERTOK           x
+DELIMITER            5  )
+OPERATOR             3  *
+IDENTIFIERTOK           sin
+DELIMITER            4  (
+IDENTIFIERTOK           c
+OPERATOR             3  *
+IDENTIFIERTOK           x
+DELIMITER            5  )
+DELIMITER            2  ;
+IDENTIFIERTOK           n
+OPERATOR             5  :=
+IDENTIFIERTOK           round
+DELIMITER            4  (
+IDENTIFIERTOK           s
+OPERATOR             3  *
+IDENTIFIERTOK           y
+DELIMITER            5  )
+OPERATOR             1  +
+IDENTIFIERTOK           h
+DELIMITER            2  ;
+RESERVED            21  REPEAT
+IDENTIFIERTOK           write
+DELIMITER            4  (
+STRINGTOK               " "
+DELIMITER            5  )
+DELIMITER            2  ;
+IDENTIFIERTOK           n
+OPERATOR             5  :=
+IDENTIFIERTOK           n
+OPERATOR             2  -
+NUMBERTOK      INTEGER  1
+RESERVED            26  UNTIL
+IDENTIFIERTOK           n
+OPERATOR             6  =
+NUMBERTOK      INTEGER  0
+DELIMITER            2  ;
+IDENTIFIERTOK           writeln
+DELIMITER            4  (
+STRINGTOK               "*"
+DELIMITER            5  )
+RESERVED             8  END
+RESERVED             8  END
+OPERATOR            13  .
+NIL
+
+>(bye)
