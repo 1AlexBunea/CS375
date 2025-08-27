@@ -29,47 +29,115 @@
 
 extern int CHARCLASS[];
 
+
+// Helper function for special characters
+// This function helps determine whether the token is a delimiter or an operator
+// This excludes certain special case operators: and, or, not, div, mod, in
+TOKEN delimiterOrOperator(char *str, TOKEN tok) {
+  // Check all delimiters
+  int isOperator = 0;
+  int tokentype = 0;
+  if (strcmp(str, "+") == 0) {
+    isOperator = 1;
+    tokentype = PLUS;
+  } else if (strcmp(str, "-") == 0) {
+    isOperator = 1;
+    tokentype = MINUS;
+  } else if (strcmp(str, "*") == 0) {
+    isOperator = 1;
+    tokentype = TIMES;
+  } else if (strcmp(str, "/") == 0) {
+    isOperator = 1;
+    tokentype = DIVIDE;
+  } else if (strcmp(str, ":=") == 0) {
+    isOperator = 1;
+    tokentype = ASSIGN;
+  } else if (strcmp(str, "=") == 0) {
+    isOperator = 1;
+    tokentype = EQ;
+  } else if (strcmp(str, "!=") == 0) {
+    isOperator = 1;
+    tokentype = NE;
+  } else if (strcmp(str, "<") == 0) {
+    isOperator = 1;
+    tokentype = LT;
+  } else if (strcmp(str, "<=") == 0) {
+    isOperator = 1;
+    tokentype = LE;
+  } else if (strcmp(str, ">=") == 0) {
+    isOperator = 1;
+    tokentype = GE;
+  } else if (strcmp(str, ">") == 0) {
+    isOperator = 1;
+    tokentype = GT;
+  } else if (strcmp(str, "^") == 0) {
+    isOperator = 1;
+    tokentype = POINT;
+  } else if (strcmp(str, ".") == 0) {
+    isOperator = 1;
+    tokentype = DOT;
+  } else if (strcmp(str, ",") == 0) { // Start of the Delimiters
+    tokentype = COMMA;
+  } else if (strcmp(str, ";") == 0) {
+    tokentype = SEMICOLON;
+  } else if (strcmp(str, ":") == 0) {
+    tokentype = COLON;
+  } else if (strcmp(str, "(") == 0) {
+    tokentype = LPAREN;
+  } else if (strcmp(str, ")") == 0) {
+    tokentype = RPAREN;
+  } else if (strcmp(str, "[") == 0) {
+    tokentype = LBRACKET;
+  } else if (strcmp(str, "]") == 0) {
+    tokentype = RBRACKET;
+  } else if (strcmp(str, "..") == 0) {
+    tokentype = DOTDOT;
+  } 
+
+  if (isOperator == 1) {
+    tok->tokentype = OPERATOR;
+    tok->whichval = tokentype - OPERATOR_BIAS;
+  } else { // The string 
+    tok->tokentype = DELIMITER;
+    tok->whichval = tokentype - DELIMITER_BIAS;
+  }
+
+  return (tok);
+}
+
+
 /* Lookup function to check if a string is a reserved word */
-int reservedlookup(char *s) {
-    /* Convert string to lowercase for case-insensitive comparison */
-    char lowercase[16];
-    int i;
-    for (i = 0; s[i] && i < 15; i++) {
-        lowercase[i] = tolower(s[i]);
-    }
-    lowercase[i] = '\0';
-    
-    /* Check against all reserved words */
-    if (strcmp(lowercase, "array") == 0) return ARRAY;
-    if (strcmp(lowercase, "begin") == 0) return BEGINBEGIN;
-    if (strcmp(lowercase, "case") == 0) return CASE;
-    if (strcmp(lowercase, "const") == 0) return CONST;
-    if (strcmp(lowercase, "do") == 0) return DO;
-    if (strcmp(lowercase, "downto") == 0) return DOWNTO;
-    if (strcmp(lowercase, "else") == 0) return ELSE;
-    if (strcmp(lowercase, "end") == 0) return END;
-    if (strcmp(lowercase, "file") == 0) return FILEFILE;
-    if (strcmp(lowercase, "for") == 0) return FOR;
-    if (strcmp(lowercase, "function") == 0) return FUNCTION;
-    if (strcmp(lowercase, "goto") == 0) return GOTO;
-    if (strcmp(lowercase, "if") == 0) return IF;
-    if (strcmp(lowercase, "label") == 0) return LABEL;
-    if (strcmp(lowercase, "nil") == 0) return NIL;
-    if (strcmp(lowercase, "of") == 0) return OF;
-    if (strcmp(lowercase, "packed") == 0) return PACKED;
-    if (strcmp(lowercase, "procedure") == 0) return PROCEDURE;
-    if (strcmp(lowercase, "program") == 0) return PROGRAM;
-    if (strcmp(lowercase, "record") == 0) return RECORD;
-    if (strcmp(lowercase, "repeat") == 0) return REPEAT;
-    if (strcmp(lowercase, "set") == 0) return SET;
-    if (strcmp(lowercase, "then") == 0) return THEN;
-    if (strcmp(lowercase, "to") == 0) return TO;
-    if (strcmp(lowercase, "type") == 0) return TYPE;
-    if (strcmp(lowercase, "until") == 0) return UNTIL;
-    if (strcmp(lowercase, "var") == 0) return VAR;
-    if (strcmp(lowercase, "while") == 0) return WHILE;
-    if (strcmp(lowercase, "with") == 0) return WITH;
-    /* If not found, it's an identifier */
+int reservedlookup(char *str) {
+    if (strcmp(str, "array") == 0) return ARRAY;
+    if (strcmp(str, "begin") == 0) return BEGINBEGIN;
+    if (strcmp(str, "case") == 0) return CASE;
+    if (strcmp(str, "const") == 0) return CONST;
+    if (strcmp(str, "do") == 0) return DO;
+    if (strcmp(str, "downto") == 0) return DOWNTO;
+    if (strcmp(str, "else") == 0) return ELSE;
+    if (strcmp(str, "end") == 0) return END;
+    if (strcmp(str, "file") == 0) return FILEFILE;
+    if (strcmp(str, "for") == 0) return FOR;
+    if (strcmp(str, "function") == 0) return FUNCTION;
+    if (strcmp(str, "goto") == 0) return GOTO;
+    if (strcmp(str, "if") == 0) return IF;
+    if (strcmp(str, "label") == 0) return LABEL;
+    if (strcmp(str, "nil") == 0) return NIL;
+    if (strcmp(str, "of") == 0) return OF;
+    if (strcmp(str, "packed") == 0) return PACKED;
+    if (strcmp(str, "procedure") == 0) return PROCEDURE;
+    if (strcmp(str, "program") == 0) return PROGRAM;
+    if (strcmp(str, "record") == 0) return RECORD;
+    if (strcmp(str, "repeat") == 0) return REPEAT;
+    if (strcmp(str, "set") == 0) return SET;
+    if (strcmp(str, "then") == 0) return THEN;
+    if (strcmp(str, "to") == 0) return TO;
+    if (strcmp(str, "type") == 0) return TYPE;
+    if (strcmp(str, "until") == 0) return UNTIL;
+    if (strcmp(str, "var") == 0) return VAR;
+    if (strcmp(str, "while") == 0) return WHILE;
+    if (strcmp(str, "with") == 0) return WITH;
+
     return IDENTIFIER;
 }
 
@@ -98,13 +166,13 @@ TOKEN identifier (TOKEN tok)
 
     while ((c = peekchar()) != EOF && CHARCLASS[c] == ALPHA) {
       c = getchar();
-      if (idx < 15) {  /* leave room for null terminator */
-        str[idx++] = c;
+      if (idx < 15) {
+        str[idx++] = tolower(c); // Make sure to lowercase the letter
       }
     }
     // Finish parsing the string and now determine if it is an identifier or a reserved word
     str[idx] = '\0';
-    /* Check if it's a reserved word or identifier */
+
     int tokentype = reservedlookup(str);
     if (tokentype == IDENTIFIER) {
         tok->tokentype = IDENTIFIERTOK;
@@ -120,7 +188,6 @@ TOKEN identifier (TOKEN tok)
 /* Used to parse strings: 'hello' */
 TOKEN getstring (TOKEN tok)
   {
-    printf("Parsing String\n");
     char str[16];
     int c;
     int idx = 0;
@@ -145,8 +212,8 @@ TOKEN getstring (TOKEN tok)
 
 
       c = getchar();
-      if (idx < 15) {  /* leave room for null terminator */
-        str[idx++] = c;
+      if (idx < 15) { 
+        str[idx++] = tolower(c);
       }
     }
     
@@ -166,11 +233,28 @@ TOKEN getstring (TOKEN tok)
 /* Used to parse special characters */
 TOKEN special (TOKEN tok)
   {
+    char str[16];
+    int c;
+    int idx = 0;
 
-
-
-
+    while ((c = peekchar()) != EOF && CHARCLASS[c] == SPECIAL) {
+      c = getchar();
+      if (idx < 15) {
+        str[idx++] = tolower(c);
+      }
     }
+
+    str[idx] = '\0';
+    
+    // Do a lookup to see whether the string is a delimiter or operator
+    if (1 == 1) {
+
+    } else {
+
+    } 
+
+    return (delimiterOrOperator(str, tok));
+  }
 
 /* Get and convert unsigned numbers of all types. */
 TOKEN number (TOKEN tok)
