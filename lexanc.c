@@ -29,6 +29,50 @@
 
 extern int CHARCLASS[];
 
+/* Lookup function to check if a string is a reserved word */
+int reservedlookup(char *s) {
+    /* Convert string to lowercase for case-insensitive comparison */
+    char lowercase[16];
+    int i;
+    for (i = 0; s[i] && i < 15; i++) {
+        lowercase[i] = tolower(s[i]);
+    }
+    lowercase[i] = '\0';
+    
+    /* Check against all reserved words */
+    if (strcmp(lowercase, "array") == 0) return ARRAY;
+    if (strcmp(lowercase, "begin") == 0) return BEGINBEGIN;
+    if (strcmp(lowercase, "case") == 0) return CASE;
+    if (strcmp(lowercase, "const") == 0) return CONST;
+    if (strcmp(lowercase, "do") == 0) return DO;
+    if (strcmp(lowercase, "downto") == 0) return DOWNTO;
+    if (strcmp(lowercase, "else") == 0) return ELSE;
+    if (strcmp(lowercase, "end") == 0) return END;
+    if (strcmp(lowercase, "file") == 0) return FILEFILE;
+    if (strcmp(lowercase, "for") == 0) return FOR;
+    if (strcmp(lowercase, "function") == 0) return FUNCTION;
+    if (strcmp(lowercase, "goto") == 0) return GOTO;
+    if (strcmp(lowercase, "if") == 0) return IF;
+    if (strcmp(lowercase, "label") == 0) return LABEL;
+    if (strcmp(lowercase, "nil") == 0) return NIL;
+    if (strcmp(lowercase, "of") == 0) return OF;
+    if (strcmp(lowercase, "packed") == 0) return PACKED;
+    if (strcmp(lowercase, "procedure") == 0) return PROCEDURE;
+    if (strcmp(lowercase, "program") == 0) return PROGRAM;
+    if (strcmp(lowercase, "record") == 0) return RECORD;
+    if (strcmp(lowercase, "repeat") == 0) return REPEAT;
+    if (strcmp(lowercase, "set") == 0) return SET;
+    if (strcmp(lowercase, "then") == 0) return THEN;
+    if (strcmp(lowercase, "to") == 0) return TO;
+    if (strcmp(lowercase, "type") == 0) return TYPE;
+    if (strcmp(lowercase, "until") == 0) return UNTIL;
+    if (strcmp(lowercase, "var") == 0) return VAR;
+    if (strcmp(lowercase, "while") == 0) return WHILE;
+    if (strcmp(lowercase, "with") == 0) return WITH;
+    /* If not found, it's an identifier */
+    return IDENTIFIER;
+}
+
 /* This file will work as given with an input file consisting only
    of integers separated by blanks:
    make lex1
@@ -48,7 +92,29 @@ void skipblanks ()
 /* Get identifiers and reserved words */
 TOKEN identifier (TOKEN tok)
   {
+    char str[16];
+    int c;
+    int idx = 0;
 
+    while ((c = peekchar()) != EOF && CHARCLASS[c] == ALPHA) {
+      c = getchar();
+      if (idx < 15) {  /* leave room for null terminator */
+        str[idx++] = c;
+      }
+    }
+    // Finish parsing the string and now determine if it is an identifier or a reserved word
+    str[idx] = '\0';
+    /* Check if it's a reserved word or identifier */
+    int tokentype = reservedlookup(str);
+    if (tokentype == IDENTIFIER) {
+        tok->tokentype = IDENTIFIERTOK;
+        strcpy(tok->stringval, str);
+    } else {
+        tok->tokentype = RESERVED;
+        tok->whichval = tokentype - RESERVED_BIAS;
+    }
+    
+    return (tok);
   }
 
 /* Used to parse strings: 'hello' */
