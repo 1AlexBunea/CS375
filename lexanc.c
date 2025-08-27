@@ -371,145 +371,171 @@ TOKEN special (TOKEN tok)
 // If there is an error, we return the type(int vs real), the value is irrelevant, can just default to 0
 TOKEN number (TOKEN tok)
   { 
-    long long integerPart = 0;
-    double realPart = 0.0;
-    double fractionalPart = 0.0;
-    double divisor = 1.0;
-    int exponent = 0;
-    int exponentSign = 1;
-    int isReal = 0;
+    char str[256];
     int c;
-    const long long MAX_INT = 2147483647LL; // 2^31 - 1 from test file
+    int idx = 0;
+    int has_decimal = 0;
+    int has_exponent = 0;
+    int significant_digits = 0;
+    int after_decimal = 0;
+    int leading_zeros = 1;  // Track if we're still in leading zeros
+    char *endptr;
     
-    /* Parse integer part */
-    while ((c = peekchar()) != EOF && CHARCLASS[c] == NUMERIC) {
+    // Read digits before decimal point
+    while ((c = peekchar()) != EOF && isdigit(c)) {
         c = getchar();
-        int digit = c - '0';
+        str[idx++] = c;
         
-        /* Check for integer overflow based on test file limit */
-        if (integerPart > (MAX_INT - digit) / 10) {
-            printf("Error: Integer overflow (max 2147483647)\n");
-            tok->tokentype = NUMBERTOK;
-            tok->basicdt = INTEGER;
-            tok->intval = 0;
-            /* Continue parsing to consume the rest of the number */
-            while ((c = peekchar()) != EOF && CHARCLASS[c] == NUMERIC) {
-                getchar();
-            }
-            return (tok);
+        // Count significant digits (skip leading zeros)
+        if (c != '0' || !leading_zeros) {
+            leading_zeros = 0;
+            significant_digits++;
         }
-        
-        integerPart = integerPart * 10 + digit;
     }
     
-    /* Check for decimal point */
+    // Check for decimal point
     if ((c = peekchar()) == '.') {
-        getchar(); /* consume the '.' */
-        
-        /* Look ahead to see if there's a digit after the decimal point */
-        if ((c = peekchar()) != EOF && CHARCLASS[c] == NUMERIC) {
-            isReal = 1;
+        // Look ahead to see if there's a digit after the decimal
+        int lookahead = peek2char();
+        if (isdigit(lookahead)) {
+            has_decimal = 1;
+            c = getchar();  // consume the '.'
+            str[idx++] = c;
+            after_decimal = 1;
             
-            /* Parse fractional part - limit to 8 significant digits per test file */
-            int significantDigits = 0;
-            int foundFirstNonZero = 0;
-            while ((c = peekchar()) != EOF && CHARCLASS[c] == NUMERIC) {
+            // Read digits after decimal point
+            while ((c = peekchar()) != EOF && isdigit(c)) {
                 c = getchar();
-                int digit = c - '0';
-                divisor *= 10.0;
+                str[idx++] = c;
                 
-                /* Only count digits as significant after first non-zero digit */
-                if (digit != 0 || foundFirstNonZero) {
-                    foundFirstNonZero = 1;
-                    if (significantDigits < 8) { /* Test file: "at most 8 significant mantissa digits" */
-                        fractionalPart = fractionalPart * 10.0 + digit;
-                        significantDigits++;
-                    } /* Ignore extra digits beyond 8 as per test file */
-                } else {
-                    /* Leading zero - include in fractional part but don't count as significant */
-                    fractionalPart = fractionalPart * 10.0 + digit;
+                // Count significant digits after decimal
+                if (after_decimal) {
+                    if (c != '0' || !leading_zeros) {
+                        leading_zeros = 0;
+                        significant_digits++;
+                    }
                 }
             }
-        } else {
-            printf("Error: Decimal point must be followed by at least one digit\n");
-            tok->tokentype = NUMBERTOK;
-            tok->basicdt = REAL;
-            tok->realval = 0.0;
-            return (tok);
         }
     }
     
-    /* Check for exponent (E or e) - makes it a float per test file */
+    // Check for exponent (makes it a real number regardless of decimal point)
     if ((c = peekchar()) == 'e' || c == 'E') {
-        getchar(); /* consume the 'e' or 'E' */
-        isReal = 1;
+        has_exponent = 1;
+        c = getchar();  // consume 'e' or 'E'
+        str[idx++] = c;
         
-        /* Check for optional sign */
+        // Check for optional sign
         if ((c = peekchar()) == '+' || c == '-') {
-            if (c == '-') {
-                exponentSign = -1;
-            }
-            getchar(); /* consume the sign */
-        }
-        
-        /* Parse exponent digits */
-        int exponentDigits = 0;
-        while ((c = peekchar()) != EOF && CHARCLASS[c] == NUMERIC) {
             c = getchar();
-            int digit = c - '0';
-            exponent = exponent * 10 + digit;
-            exponentDigits++;
+            str[idx++] = c;
         }
         
-        if (exponentDigits == 0) {
-            printf("Error: Exponent must contain at least one digit\n");
-            tok->tokentype = NUMBERTOK;
-            tok->basicdt = REAL;
-            tok->realval = 0.0;
-            return (tok);
+        // Must have at least one digit after exponent
+        if ((c = peekchar()) != EOF && isdigit(c)) {
+            while ((c = peekchar()) != EOF && isdigit(c)) {
+                c = getchar();
+                str[idx++] = c;
+            }
         }
     }
     
-    /* Set token properties */
-    tok->tokentype = NUMBERTOK;
+    str[idx] = '\0';
     
-    if (isReal) {
-        /* Calculate real value */
-        realPart = (double)integerPart + (fractionalPart / divisor);
+    // Determine if this is an integer or real number
+    if (has_decimal || has_exponent) {
+        // Real number
+        tok->tokentype = NUMBERTOK;
+        tok->basicdt = REAL;
         
-        /* Apply exponent if present */
-        if (exponent != 0) {
-            double expValue = 1.0;
-            int absExponent = exponent * exponentSign;
+        // For real numbers, limit to 8 significant digits
+        if (significant_digits > 8) {
+            // Create a modified string with only 8 significant digits
+            char limited_str[256];
+            int limit_idx = 0;
+            int sig_count = 0;
+            int found_first_sig = 0;
+            int decimal_seen = 0;
             
-            /* Calculate 10^exponent */
-            for (int i = 0; i < abs(absExponent); i++) {
-                if (absExponent > 0) {
-                    expValue *= 10.0;
+            for (int i = 0; i < idx && limit_idx < 255; i++) {
+                char ch = str[i];
+                
+                if (ch == '.') {
+                    decimal_seen = 1;
+                    limited_str[limit_idx++] = ch;
+                } else if (ch == 'e' || ch == 'E') {
+                    // Copy the rest of the exponent
+                    while (i < idx && limit_idx < 255) {
+                        limited_str[limit_idx++] = str[i++];
+                    }
+                    break;
+                } else if (isdigit(ch)) {
+                    if (ch != '0' || found_first_sig) {
+                        found_first_sig = 1;
+                        sig_count++;
+                    }
+                    
+                    if (sig_count <= 8) {
+                        limited_str[limit_idx++] = ch;
+                    } else if (!decimal_seen) {
+                        // If we haven't seen decimal yet and exceeded 8 digits,
+                        // replace remaining digits with zeros
+                        limited_str[limit_idx++] = '0';
+                    }
                 } else {
-                    expValue /= 10.0;
+                    limited_str[limit_idx++] = ch;
                 }
             }
-            realPart *= expValue;
-        }
-        
-        /* Check floating point range from test file: 1.175495E-38 to 3.402823E+38 */
-        if (realPart > 3.402823E+38) {
-            printf("Error: Floating-point overflow (max 3.402823E+38)\n");
-            tok->basicdt = REAL;
-            tok->realval = 0.0;
-        } else if (realPart != 0.0 && realPart < 1.175495E-38) {
-            printf("Error: Floating-point underflow (min 1.175495E-38)\n");
-            tok->basicdt = REAL;
-            tok->realval = 0.0;
+            limited_str[limit_idx] = '\0';
+            
+            tok->realval = strtod(limited_str, &endptr);
+            if (*endptr != '\0') {
+                printf("Error: Invalid real number format\n");
+                tok->realval = 0.0;
+            } else {
+                // Check floating point bounds: 1.175495E-38 to 3.402823E+38
+                if (tok->realval != 0.0 && (tok->realval < 1.175495E-38 && tok->realval > -1.175495E-38)) {
+                    printf("Error: Floating point number too small (underflow)\n");
+                    tok->realval = 0.0;
+                } else if (tok->realval > 3.402823E+38 || tok->realval < -3.402823E+38) {
+                    printf("Error: Floating point number too large (overflow)\n");
+                    tok->realval = 0.0;
+                }
+            }
         } else {
-            tok->basicdt = REAL;
-            tok->realval = realPart;
+            tok->realval = strtod(str, &endptr);
+            if (*endptr != '\0') {
+                printf("Error: Invalid real number format\n");
+                tok->realval = 0.0;
+            } else {
+                // Check floating point bounds: 1.175495E-38 to 3.402823E+38
+                if (tok->realval != 0.0 && (tok->realval < 1.175495E-38 && tok->realval > -1.175495E-38)) {
+                    printf("Error: Floating point number too small (underflow)\n");
+                    tok->realval = 0.0;
+                } else if (tok->realval > 3.402823E+38 || tok->realval < -3.402823E+38) {
+                    printf("Error: Floating point number too large (overflow)\n");
+                    tok->realval = 0.0;
+                }
+            }
         }
     } else {
-        /* Integer value */
+        // Integer number
+        tok->tokentype = NUMBERTOK;
         tok->basicdt = INTEGER;
-        tok->intval = (int)integerPart;
+        
+        long long result = strtoll(str, &endptr, 10);
+        if (*endptr != '\0') {
+            printf("Error: Invalid integer format\n");
+            tok->intval = 0;
+        } else {
+            // Check integer bounds: maximum unsigned integer is 2147483647 (2^31 - 1)
+            if (result > 2147483647LL || result < -2147483648LL) {
+                printf("Error: Integer overflow - value exceeds 32-bit signed integer range\n");
+                tok->intval = 0;
+            } else {
+                tok->intval = (int)result;
+            }
+        }
     }
     
     return (tok);
