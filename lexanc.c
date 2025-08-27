@@ -56,7 +56,7 @@ TOKEN delimiterOrOperator(char *str, TOKEN tok) {
   } else if (strcmp(str, "=") == 0) {
     isOperator = 1;
     tokentype = EQ;
-  } else if (strcmp(str, "!=") == 0) {
+  } else if (strcmp(str, "<>") == 0) {
     isOperator = 1;
     tokentype = NE;
   } else if (strcmp(str, "<") == 0) {
@@ -356,11 +356,53 @@ TOKEN special (TOKEN tok)
     int c;
     int idx = 0;
 
-    while ((c = peekchar()) != EOF && CHARCLASS[c] == SPECIAL) {
-      c = getchar();
-      if (idx < 15) {
-        str[idx++] = c;  // Don't modify special characters
-      }
+    c = peekchar();
+    if (c == EOF || CHARCLASS[c] != SPECIAL) {
+        return tok;
+    }
+
+    // Look for multi-character operators and delimiters first
+    if (c == ':') {
+        c = getchar();
+        str[idx++] = c;
+        if (peekchar() == '=') {
+            c = getchar();
+            str[idx++] = c;
+            str[idx] = '\0';
+            return (delimiterOrOperator(str, tok));
+        }
+    } else if (c == '<') {
+        c = getchar();
+        str[idx++] = c;
+        int next = peekchar();
+        if (next == '=' || next == '>') {
+            c = getchar();
+            str[idx++] = c;
+            str[idx] = '\0';
+            return (delimiterOrOperator(str, tok));
+        }
+    } else if (c == '>') {
+        c = getchar();
+        str[idx++] = c;
+        if (peekchar() == '=') {
+            c = getchar();
+            str[idx++] = c;
+            str[idx] = '\0';
+            return (delimiterOrOperator(str, tok));
+        }
+    } else if (c == '.') {
+        c = getchar();
+        str[idx++] = c;
+        if (peekchar() == '.') {
+            c = getchar();
+            str[idx++] = c;
+            str[idx] = '\0';
+            return (delimiterOrOperator(str, tok));
+        }
+    } else {
+        // Single character operator or delimiter
+        c = getchar();
+        str[idx++] = c;
     }
 
     str[idx] = '\0';
