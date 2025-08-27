@@ -48,14 +48,14 @@ void skipblanks ()
 /* Get identifiers and reserved words */
 TOKEN identifier (TOKEN tok)
   {
-    printf("identifier\n");
-    }
+
+  }
 
 /* Used to parse strings: 'hello' */
 TOKEN getstring (TOKEN tok)
   {
-    printf("string\n");
-    char str[15];
+    printf("Parsing String\n");
+    char str[16];
     int c;
     int idx = 0;
     
@@ -63,9 +63,23 @@ TOKEN getstring (TOKEN tok)
     c = getchar();  /* this should be the opening ' */
     
     /* read characters until we find the closing quote */
-    while ((c = peekchar()) != EOF && c != '\'') {
+    while ((c = peekchar()) != EOF)  {
+      // If the next char is a quote and the one after is not, then we break
+      // If the next two chars are both quotes, we can include one
+      if (c == '\'') {
+        int d = peek2char();
+        if (d == '\'') {
+          // consume 1 of the quotes then add the next
+          c = getchar();
+        } else {
+          // End of the string
+          break;
+        }
+      }
+
+
       c = getchar();
-      if (idx < 14) {  /* leave room for null terminator */
+      if (idx < 15) {  /* leave room for null terminator */
         str[idx++] = c;
       }
     }
