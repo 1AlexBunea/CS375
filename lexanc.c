@@ -106,39 +106,128 @@ TOKEN delimiterOrOperator(char *str, TOKEN tok) {
 }
 
 
-/* Lookup function to check if a string is a reserved word */
-int reservedlookup(char *str) {
-    if (strcmp(str, "array") == 0) return ARRAY;
-    if (strcmp(str, "begin") == 0) return BEGINBEGIN;
-    if (strcmp(str, "case") == 0) return CASE;
-    if (strcmp(str, "const") == 0) return CONST;
-    if (strcmp(str, "do") == 0) return DO;
-    if (strcmp(str, "downto") == 0) return DOWNTO;
-    if (strcmp(str, "else") == 0) return ELSE;
-    if (strcmp(str, "end") == 0) return END;
-    if (strcmp(str, "file") == 0) return FILEFILE;
-    if (strcmp(str, "for") == 0) return FOR;
-    if (strcmp(str, "function") == 0) return FUNCTION;
-    if (strcmp(str, "goto") == 0) return GOTO;
-    if (strcmp(str, "if") == 0) return IF;
-    if (strcmp(str, "label") == 0) return LABEL;
-    if (strcmp(str, "nil") == 0) return NIL;
-    if (strcmp(str, "of") == 0) return OF;
-    if (strcmp(str, "packed") == 0) return PACKED;
-    if (strcmp(str, "procedure") == 0) return PROCEDURE;
-    if (strcmp(str, "program") == 0) return PROGRAM;
-    if (strcmp(str, "record") == 0) return RECORD;
-    if (strcmp(str, "repeat") == 0) return REPEAT;
-    if (strcmp(str, "set") == 0) return SET;
-    if (strcmp(str, "then") == 0) return THEN;
-    if (strcmp(str, "to") == 0) return TO;
-    if (strcmp(str, "type") == 0) return TYPE;
-    if (strcmp(str, "until") == 0) return UNTIL;
-    if (strcmp(str, "var") == 0) return VAR;
-    if (strcmp(str, "while") == 0) return WHILE;
-    if (strcmp(str, "with") == 0) return WITH;
-
-    return IDENTIFIER;
+/* Lookup function to check if a string is a reserved word or special operator */
+void reservedlookup(char *str, TOKEN tok) {
+    // Check for special operator words first
+    if (strcmp(str, "and") == 0) {
+        tok->tokentype = OPERATOR;
+        tok->whichval = AND - OPERATOR_BIAS;
+        return;
+    } else if (strcmp(str, "or") == 0) {
+        tok->tokentype = OPERATOR;
+        tok->whichval = OR - OPERATOR_BIAS;
+        return;
+    } else if (strcmp(str, "not") == 0) {
+        tok->tokentype = OPERATOR;
+        tok->whichval = NOT - OPERATOR_BIAS;
+        return;
+    } else if (strcmp(str, "div") == 0) {
+        tok->tokentype = OPERATOR;
+        tok->whichval = DIV - OPERATOR_BIAS;
+        return;
+    } else if (strcmp(str, "mod") == 0) {
+        tok->tokentype = OPERATOR;
+        tok->whichval = MOD - OPERATOR_BIAS;
+        return;
+    } else if (strcmp(str, "in") == 0) {
+        tok->tokentype = OPERATOR;
+        tok->whichval = IN - OPERATOR_BIAS;
+        return;
+    }
+    
+    // Check for regular reserved words
+    if (strcmp(str, "array") == 0) {
+        tok->tokentype = RESERVED;
+        tok->whichval = ARRAY - RESERVED_BIAS;
+    } else if (strcmp(str, "begin") == 0) {
+        tok->tokentype = RESERVED;
+        tok->whichval = BEGINBEGIN - RESERVED_BIAS;
+    } else if (strcmp(str, "case") == 0) {
+        tok->tokentype = RESERVED;
+        tok->whichval = CASE - RESERVED_BIAS;
+    } else if (strcmp(str, "const") == 0) {
+        tok->tokentype = RESERVED;
+        tok->whichval = CONST - RESERVED_BIAS;
+    } else if (strcmp(str, "do") == 0) {
+        tok->tokentype = RESERVED;
+        tok->whichval = DO - RESERVED_BIAS;
+    } else if (strcmp(str, "downto") == 0) {
+        tok->tokentype = RESERVED;
+        tok->whichval = DOWNTO - RESERVED_BIAS;
+    } else if (strcmp(str, "else") == 0) {
+        tok->tokentype = RESERVED;
+        tok->whichval = ELSE - RESERVED_BIAS;
+    } else if (strcmp(str, "end") == 0) {
+        tok->tokentype = RESERVED;
+        tok->whichval = END - RESERVED_BIAS;
+    } else if (strcmp(str, "file") == 0) {
+        tok->tokentype = RESERVED;
+        tok->whichval = FILEFILE - RESERVED_BIAS;
+    } else if (strcmp(str, "for") == 0) {
+        tok->tokentype = RESERVED;
+        tok->whichval = FOR - RESERVED_BIAS;
+    } else if (strcmp(str, "function") == 0) {
+        tok->tokentype = RESERVED;
+        tok->whichval = FUNCTION - RESERVED_BIAS;
+    } else if (strcmp(str, "goto") == 0) {
+        tok->tokentype = RESERVED;
+        tok->whichval = GOTO - RESERVED_BIAS;
+    } else if (strcmp(str, "if") == 0) {
+        tok->tokentype = RESERVED;
+        tok->whichval = IF - RESERVED_BIAS;
+    } else if (strcmp(str, "label") == 0) {
+        tok->tokentype = RESERVED;
+        tok->whichval = LABEL - RESERVED_BIAS;
+    } else if (strcmp(str, "nil") == 0) {
+        tok->tokentype = RESERVED;
+        tok->whichval = NIL - RESERVED_BIAS;
+    } else if (strcmp(str, "of") == 0) {
+        tok->tokentype = RESERVED;
+        tok->whichval = OF - RESERVED_BIAS;
+    } else if (strcmp(str, "packed") == 0) {
+        tok->tokentype = RESERVED;
+        tok->whichval = PACKED - RESERVED_BIAS;
+    } else if (strcmp(str, "procedure") == 0) {
+        tok->tokentype = RESERVED;
+        tok->whichval = PROCEDURE - RESERVED_BIAS;
+    } else if (strcmp(str, "program") == 0) {
+        tok->tokentype = RESERVED;
+        tok->whichval = PROGRAM - RESERVED_BIAS;
+    } else if (strcmp(str, "record") == 0) {
+        tok->tokentype = RESERVED;
+        tok->whichval = RECORD - RESERVED_BIAS;
+    } else if (strcmp(str, "repeat") == 0) {
+        tok->tokentype = RESERVED;
+        tok->whichval = REPEAT - RESERVED_BIAS;
+    } else if (strcmp(str, "set") == 0) {
+        tok->tokentype = RESERVED;
+        tok->whichval = SET - RESERVED_BIAS;
+    } else if (strcmp(str, "then") == 0) {
+        tok->tokentype = RESERVED;
+        tok->whichval = THEN - RESERVED_BIAS;
+    } else if (strcmp(str, "to") == 0) {
+        tok->tokentype = RESERVED;
+        tok->whichval = TO - RESERVED_BIAS;
+    } else if (strcmp(str, "type") == 0) {
+        tok->tokentype = RESERVED;
+        tok->whichval = TYPE - RESERVED_BIAS;
+    } else if (strcmp(str, "until") == 0) {
+        tok->tokentype = RESERVED;
+        tok->whichval = UNTIL - RESERVED_BIAS;
+    } else if (strcmp(str, "var") == 0) {
+        tok->tokentype = RESERVED;
+        tok->whichval = VAR - RESERVED_BIAS;
+    } else if (strcmp(str, "while") == 0) {
+        tok->tokentype = RESERVED;
+        tok->whichval = WHILE - RESERVED_BIAS;
+    } else if (strcmp(str, "with") == 0) {
+        tok->tokentype = RESERVED;
+        tok->whichval = WITH - RESERVED_BIAS;
+    } else {
+        /* It's an identifier */
+        tok->tokentype = IDENTIFIERTOK;
+        strcpy(tok->stringval, str);
+    }
 }
 
 /* This file will work as given with an input file consisting only
@@ -173,14 +262,7 @@ TOKEN identifier (TOKEN tok)
     // Finish parsing the string and now determine if it is an identifier or a reserved word
     str[idx] = '\0';
 
-    int tokentype = reservedlookup(str);
-    if (tokentype == IDENTIFIER) {
-        tok->tokentype = IDENTIFIERTOK;
-        strcpy(tok->stringval, str);
-    } else {
-        tok->tokentype = RESERVED;
-        tok->whichval = tokentype - RESERVED_BIAS;
-    }
+    reservedlookup(str, tok);
     
     return (tok);
   }
@@ -245,14 +327,6 @@ TOKEN special (TOKEN tok)
     }
 
     str[idx] = '\0';
-    
-    // Do a lookup to see whether the string is a delimiter or operator
-    if (1 == 1) {
-
-    } else {
-
-    } 
-
     return (delimiterOrOperator(str, tok));
   }
 
