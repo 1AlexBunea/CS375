@@ -241,9 +241,43 @@ void reservedlookup(char *str, TOKEN tok) {
 void skipblanks ()
   {
       int c;
-      while ((c = peekchar()) != EOF
-             && (c == ' ' || c == '\n' || c == '\t'))
-          getchar();
+      while ((c = peekchar()) != EOF)
+      {
+          if (c == ' ' || c == '\n' || c == '\t') {
+            getchar();  /* consume whitespace */
+          } else if (c == '{') {
+            getchar();
+            while ((c = peekchar()) != EOF && c != '}') {
+                getchar();  // consume characters until }
+            }
+            
+            if (c == '}') {
+                getchar();  /* consume the closing } */
+            }
+          } else if (c == '(') {
+              if ((c = peek2char()) == '*') { 
+                  getchar();  // consume the (
+                  getchar();  // consume the *
+                  while ((c = peekchar()) != EOF)
+                  {
+                      if (c == '*')
+                      {
+                          getchar();  // consume the *
+                          if ((c = peekchar()) == ')') {
+                              getchar();  // consume the )
+                              break;  // end of comment
+                          }
+                      }
+                      else {
+                          getchar();  // consume other characters
+                      }
+                  }
+              }
+          }
+          else {
+              break;  // Not whitespace or comment, stop skipping
+          }
+      }
     }
 
 /* Get identifiers and reserved words */
