@@ -365,19 +365,67 @@ TOKEN special (TOKEN tok)
   }
 
 /* Get and convert unsigned numbers of all types. */
+// If there is an error, we return the type(int vs real), the value is irrelevant, can just default to 0
 TOKEN number (TOKEN tok)
-  { long num;
-    int  c, charval;
-    num = 0;
-    while ( (c = peekchar()) != EOF
-            && CHARCLASS[c] == NUMERIC)
-      {   c = getchar();
-          charval = (c - '0');
-          num = num * 10 + charval;
+  { 
+    char mantissa[9]; // Store the 8 significant figures
+    char multiplier[4];
+    int idx = 0;
+    int isRealNumber = 0;
+    int decimal_idx = -1; // If there is a decimal found, that is valid
+    int c;
+
+    while ((c = peekchar()) != EOF) {
+      if (CHARCLASS[c] == NUMERIC) {
+        if (idx < 8) {
+          mantissa[idx++] = c;
         }
-    tok->tokentype = NUMBERTOK;
-    tok->basicdt = INTEGER;
-    tok->intval = num;
+      } else if (c == 'e' || c == 'E') { // if we find an e or E, then the number is a real number(float)
+        int next_char = peek2char();
+
+        // Parse the multiplier for the float
+        if (CHARCLASS[next_char] == NUMERIC ||next_char == '-' || next_char == '+') {
+          c = getchar(); // Parse out the e
+          isRealNumber = 1;
+
+          c = getchar(); // Get the first char which could be a number, -, or +
+          int multiplier_idx = 0;
+          // Can add at most 3 items, IE. -34, but other conditions like 345 would be invalid
+          for (multiplier_idx = 0; multiplier_idx < 3; multiplier_idx++) {
+            multiplier[multiplier_idx++] = c;
+            // Iterate for at most 4 characters to get the multiplier, anything more
+            if ((c = peekchar) != EOF && CHARCLASS[c] == NUMERIC) {
+              c = getchar();
+            } else {
+              printf("Error: Not an appropriate character to follow an %c\n", c);
+              break;
+            }
+          }
+          multiplier[multiplier_idx] = '\0';
+
+        } else {
+          // Error
+          break;
+        }
+      } else if (c == '.') {
+        int d = peek2char();
+        if (CHARCLASS[d] == NUMERIC) {
+          if (isRealNumber == 1) {
+            printf("Error: Already found either a decimal value or an e while parsing\n");
+          }
+          isRealNumber = 1;
+          c = getchar();
+          decimal_idx = idx;
+        } else {
+          // Not a number, this is an error
+          printf("Error: Not a number after the decimal\n");
+          break;
+        }
+      }
+    }
+
+    mantissa[idx] = '\0';
+    
     return (tok);
   }
 
