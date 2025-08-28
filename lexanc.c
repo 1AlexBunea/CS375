@@ -24,7 +24,6 @@
 #include <stdio.h>
 #include <ctype.h>
 #include <string.h>
-#include <stdlib.h>
 #include "token.h"
 #include "lexan.h"
 
@@ -409,6 +408,112 @@ TOKEN special (TOKEN tok)
     return (delimiterOrOperator(str, tok));
   }
 
+/* Manual string to integer conversion */
+int string_to_int(char *str, int *overflow) {
+    int result = 0;
+    int i = 0;
+    *overflow = 0;
+    
+    while (str[i] != '\0' && isdigit(str[i])) {
+        int digit = str[i] - '0';
+        
+        // Check for overflow before multiplication
+        if (result > (2147483647 - digit) / 10) {
+            *overflow = 1;
+            return 0;
+        }
+        
+        result = result * 10 + digit;
+        i++;
+    }
+    
+    return result;
+}
+
+/* Manual string to double conversion */
+double string_to_double(char *str, int *error) {
+    double result = 0.0;
+    double fraction = 0.0;
+    double divisor = 1.0;
+    int exponent = 0;
+    int exp_sign = 1;
+    int i = 0;
+    int decimal_found = 0;
+    int exp_found = 0;
+    *error = 0;
+    
+    // Parse integer part
+    while (str[i] != '\0' && isdigit(str[i])) {
+        result = result * 10.0 + (str[i] - '0');
+        i++;
+    }
+    
+    // Parse decimal part
+    if (str[i] == '.') {
+        decimal_found = 1;
+        i++;
+        while (str[i] != '\0' && isdigit(str[i])) {
+            fraction = fraction * 10.0 + (str[i] - '0');
+            divisor *= 10.0;
+            i++;
+        }
+        result += fraction / divisor;
+    }
+    
+    // Parse exponent
+    if (str[i] == 'e' || str[i] == 'E') {
+        exp_found = 1;
+        i++;
+        
+        // Check for sign
+        if (str[i] == '+') {
+            i++;
+        } else if (str[i] == '-') {
+            exp_sign = -1;
+            i++;
+        }
+        
+        // Parse exponent value
+        while (str[i] != '\0' && isdigit(str[i])) {
+            exponent = exponent * 10 + (str[i] - '0');
+            i++;
+        }
+        exponent *= exp_sign;
+        
+        // Apply exponent manually
+        if (exponent > 0) {
+            for (int j = 0; j < exponent; j++) {
+                result *= 10.0;
+                if (result > 3.402823E+38) {
+                    *error = 1;
+                    return 0.0;
+                }
+            }
+        } else if (exponent < 0) {
+            for (int j = 0; j < -exponent; j++) {
+                result /= 10.0;
+                if (result != 0.0 && result < 1.175495E-38 && result > -1.175495E-38) {
+                    *error = 1;
+                    return 0.0;
+                }
+            }
+        }
+    }
+    
+    // Check bounds
+    if (result > 3.402823E+38 || result < -3.402823E+38) {
+        *error = 1;
+        return 0.0;
+    }
+    
+    if (result != 0.0 && (result < 1.175495E-38 && result > -1.175495E-38)) {
+        *error = 1;
+        return 0.0;
+    }
+    
+    return result;
+}
+
 /* Get and convert unsigned numbers of all types. */
 // If there is an error, we return the type(int vs real), the value is irrelevant, can just default to 0
 TOKEN number (TOKEN tok)
@@ -421,7 +526,6 @@ TOKEN number (TOKEN tok)
     int significant_digits = 0;
     int after_decimal = 0;
     int leading_zeros = 1;  // Track if we're still in leading zeros
-    char *endptr;
     
     // Read digits before decimal point
     while ((c = peekchar()) != EOF && isdigit(c)) {
@@ -530,34 +634,18 @@ TOKEN number (TOKEN tok)
             }
             limited_str[limit_idx] = '\0';
             
-            tok->realval = strtod(limited_str, &endptr);
-            if (*endptr != '\0') {
-                printf("Error: Invalid real number format\n");
+            int error = 0;
+            tok->realval = string_to_double(limited_str, &error);
+            if (error) {
+                printf("Error: Floating point number out of range\n");
                 tok->realval = 0.0;
-            } else {
-                // Check floating point bounds: 1.175495E-38 to 3.402823E+38
-                if (tok->realval != 0.0 && (tok->realval < 1.175495E-38 && tok->realval > -1.175495E-38)) {
-                    printf("Error: Floating point number too small (underflow)\n");
-                    tok->realval = 0.0;
-                } else if (tok->realval > 3.402823E+38 || tok->realval < -3.402823E+38) {
-                    printf("Error: Floating point number too large (overflow)\n");
-                    tok->realval = 0.0;
-                }
             }
         } else {
-            tok->realval = strtod(str, &endptr);
-            if (*endptr != '\0') {
-                printf("Error: Invalid real number format\n");
+            int error = 0;
+            tok->realval = string_to_double(str, &error);
+            if (error) {
+                printf("Error: Floating point number out of range\n");
                 tok->realval = 0.0;
-            } else {
-                // Check floating point bounds: 1.175495E-38 to 3.402823E+38
-                if (tok->realval != 0.0 && (tok->realval < 1.175495E-38 && tok->realval > -1.175495E-38)) {
-                    printf("Error: Floating point number too small (underflow)\n");
-                    tok->realval = 0.0;
-                } else if (tok->realval > 3.402823E+38 || tok->realval < -3.402823E+38) {
-                    printf("Error: Floating point number too large (overflow)\n");
-                    tok->realval = 0.0;
-                }
             }
         }
     } else {
@@ -565,18 +653,13 @@ TOKEN number (TOKEN tok)
         tok->tokentype = NUMBERTOK;
         tok->basicdt = INTEGER;
         
-        long long result = strtoll(str, &endptr, 10);
-        if (*endptr != '\0') {
-            printf("Error: Invalid integer format\n");
+        int overflow = 0;
+        int result = string_to_int(str, &overflow);
+        if (overflow) {
+            printf("Error: Integer overflow - value exceeds 32-bit signed integer range\n");
             tok->intval = 0;
         } else {
-            // Check integer bounds: maximum unsigned integer is 2147483647 (2^31 - 1)
-            if (result > 2147483647LL || result < -2147483648LL) {
-                printf("Error: Integer overflow - value exceeds 32-bit signed integer range\n");
-                tok->intval = 0;
-            } else {
-                tok->intval = (int)result;
-            }
+            tok->intval = result;
         }
     }
     
