@@ -40,6 +40,7 @@
 int maketoken(int type, int which);
 int install_id();
 int install_fnum();
+int install_inum();
 int yywrap();
 
 /* If the lex yytext buffer turns out to be too small to hold comments,
@@ -61,7 +62,8 @@ ws       {delim}+
 letter   [A-Za-z]
 digit    [0-9]
 id       {letter}({letter}|{digit})*
-fnumber  {digit}+(\.{digit}+)?([eE][+\-]?{digit}+)?
+fnumber  {digit}+(\.{digit}+([eE][+\-]?{digit}+)?|[eE][+\-]?{digit}+)
+inumber  {digit}+
 
 %%
 
@@ -75,6 +77,7 @@ begin     {return(maketoken(RESERVED, BEGINBEGIN));}
 end       {return(maketoken(RESERVED, END));}
 {id}      {return(install_id());}
 {fnumber} {return(install_fnum());}
+{inumber} {return(install_inum());}
 "<"       {return(maketoken(OPERATOR, LT));}
 "<="      {return(maketoken(OPERATOR, LE));}
 "="       {return(maketoken(OPERATOR, EQ));}
@@ -124,15 +127,31 @@ int install_id()
   return(IDENTIFIER);
  }
 
+
+// Used to parse floats / doubles
 int install_fnum() {  /* Note -- you may use sscanf for this assignment. */
   float fnum;
   yylval = talloc();   /* Make new token, set yylval to point to it */
   yylval->tokentype = NUMBERTOK;
   yylval->basicdt = REAL;
        /* printf("num %10s   n = %4d\n",yytext,yyleng); */
+
   sscanf(yytext, "%f", &fnum);
   yylval->realval = fnum;
   return(NUMBER);
  }
+
+// Used to parse integers  
+int install_inum() {
+   int inum;
+   yylval = talloc();   /* Make new token, set yylval to point to it */
+   yylval->tokentype = NUMBERTOK;
+   yylval->basicdt = INTEGER;
+         /* printf("num %10s   n = %4d\n",yytext,yyleng); */
+   sscanf(yytext, "%d", &inum);
+   yylval->intval = inum;
+   return(NUMBER);
+   }
+
 
 int yywrap() {  return(1);  }       /* lex may need this. */
