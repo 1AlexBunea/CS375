@@ -65,7 +65,7 @@ digit    [0-9]
 id       {letter}({letter}|{digit})*
 fnumber  {digit}+(\.{digit}+([eE][+\-]?{digit}+)?|[eE][+\-]?{digit}+)
 inumber  {digit}+
-string   \'[^\']*\'
+string   \'([^\'']|\'\')*\'
 
 %%
 
@@ -182,18 +182,24 @@ int install_id()
  }
 
  int install_string() {
-   int i, c, n;
+   int i, j, c, n;
    yylval = talloc();  /* Make new token, set yylval to point to it */
    yylval->tokentype = STRINGTOK;
-   n = yyleng - 2;            // Remove 2 from the length due to the apostrophes
-   if ( n > 15 ) n = 15;
-   for (i = 0; i < n ; i++)
-      { c = yytext[i + 1];
-            /* if (islower(c)) c = toupper(c); */ /* to raise to upper case */
-      yylval->stringval[i] = c;
-      };
-   yylval->stringval[n] = '\0';
-            /* printf("id  %10s   n = %4d\n", yytext, n); */
+   n = yyleng - 2;            // Remove 2 from the length due to the outer apostrophes
+   
+   j = 0; // Index for output string
+   for (i = 1; i < yyleng - 1 && j < 15; i++) { // Start at 1, end at yyleng-1 to skip outer quotes
+      c = yytext[i];
+      if (c == '\'' && i + 1 < yyleng - 1 && yytext[i + 1] == '\'') {
+         // Found escaped quote: '' becomes '
+         yylval->stringval[j] = '\'';
+         i++; // Skip the second quote
+      } else {
+         yylval->stringval[j] = c;
+      }
+      j++;
+   }
+   yylval->stringval[j] = '\0';
    return(STRING);
  }
 
