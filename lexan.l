@@ -39,6 +39,7 @@
 
 int maketoken(int type, int which);
 int install_id();
+int install_string();
 int install_fnum();
 int install_inum();
 int yywrap();
@@ -64,30 +65,83 @@ digit    [0-9]
 id       {letter}({letter}|{digit})*
 fnumber  {digit}+(\.{digit}+([eE][+\-]?{digit}+)?|[eE][+\-]?{digit}+)
 inumber  {digit}+
+string   \'[^\']*\'
 
 %%
 
 {ws}      { /* no action and no return */ }
-"{"[^}]*"}"           { /* skip brace comments */ }
-"(*"([^*]|\*+[^*)])*\*+")" { /* skip parenthesis comments */ }
-if        {return(maketoken(RESERVED, IF));}
-then      {return(maketoken(RESERVED, THEN));}
-else      {return(maketoken(RESERVED, ELSE));}
+array     {return(maketoken(RESERVED, ARRAY));}
 begin     {return(maketoken(RESERVED, BEGINBEGIN));}
+case      {return(maketoken(RESERVED, CASE));}
+const     {return(maketoken(RESERVED, CONST));}
+do        {return(maketoken(RESERVED, DO));}
+downto    {return(maketoken(RESERVED, DOWNTO));}
+else      {return(maketoken(RESERVED, ELSE));}
 end       {return(maketoken(RESERVED, END));}
+file      {return(maketoken(RESERVED, FILEFILE));}
+for       {return(maketoken(RESERVED, FOR));}
+function  {return(maketoken(RESERVED, FUNCTION));}
+goto      {return(maketoken(RESERVED, GOTO));}
+if        {return(maketoken(RESERVED, IF));}
+label     {return(maketoken(RESERVED, LABEL));}
+nil       {return(maketoken(RESERVED, NIL));}
+of        {return(maketoken(RESERVED, OF));}
+packed    {return(maketoken(RESERVED, PACKED));}
+procedure {return(maketoken(RESERVED, PROCEDURE));}
+program   {return(maketoken(RESERVED, PROGRAM));}
+record    {return(maketoken(RESERVED, RECORD));}
+repeat    {return(maketoken(RESERVED, REPEAT));}
+set       {return(maketoken(RESERVED, SET));}
+then      {return(maketoken(RESERVED, THEN));}
+to        {return(maketoken(RESERVED, TO));}
+type      {return(maketoken(RESERVED, TYPE));}
+until     {return(maketoken(RESERVED, UNTIL));}
+var       {return(maketoken(RESERVED, VAR));}
+while     {return(maketoken(RESERVED, WHILE));}
+with      {return(maketoken(RESERVED, WITH));}
+
+
+and       {return(maketoken(OPERATOR, AND));}
+or        {return(maketoken(OPERATOR, OR));}
+not       {return(maketoken(OPERATOR, NOT));}
+div       {return(maketoken(OPERATOR, DIV));}
+mod       {return(maketoken(OPERATOR, MOD));}
+in        {return(maketoken(OPERATOR, IN));}
+
+
 {id}      {return(install_id());}
+
+{string}  {return(install_string());}
 {fnumber} {return(install_fnum());}
 {inumber} {return(install_inum());}
-"<"       {return(maketoken(OPERATOR, LT));}
-"<="      {return(maketoken(OPERATOR, LE));}
+
+"+"       {return(maketoken(OPERATOR, PLUS));}
+"-"       {return(maketoken(OPERATOR, MINUS));}
+"*"       {return(maketoken(OPERATOR, TIMES));}
+"/"       {return(maketoken(OPERATOR, DIVIDE));}
+":="      {return(maketoken(OPERATOR, ASSIGN));}
 "="       {return(maketoken(OPERATOR, EQ));}
 "<>"      {return(maketoken(OPERATOR, NE));}
-">"       {return(maketoken(OPERATOR, GT));}
+"<"       {return(maketoken(OPERATOR, LT));}
+"<="      {return(maketoken(OPERATOR, LE));}
 ">="      {return(maketoken(OPERATOR, GE));}
-":="      {return(maketoken(OPERATOR, ASSIGN));}
+">"       {return(maketoken(OPERATOR, GT));}
+"^"       {return(maketoken(OPERATOR, POINT));}
 "."       {return(maketoken(OPERATOR, DOT));}
-";"       {return(maketoken(DELIMITER, SEMICOLON));}
 
+
+","       {return(maketoken(DELIMITER, COMMA));}
+";"       {return(maketoken(DELIMITER, SEMICOLON));}
+":"       {return(maketoken(DELIMITER, COLON));}
+"("       {return(maketoken(DELIMITER, LPAREN));}
+")"       {return(maketoken(DELIMITER, RPAREN));}
+"["       {return(maketoken(DELIMITER, LBRACKET));}
+"]"       {return(maketoken(DELIMITER, RBRACKET));}
+".."      {return(maketoken(DELIMITER, DOTDOT));}
+
+
+"{"[^}]*"}"          { /* skip brace comments */ }
+"(*"[^*]*("*"+[^*)])*"*"+")"  { /* skip parenthesis comments */ }
 %%
 
 /* Note that lex always returns two values:
@@ -127,28 +181,66 @@ int install_id()
   return(IDENTIFIER);
  }
 
+ int install_string() {
+   int i, c, n;
+   yylval = talloc();  /* Make new token, set yylval to point to it */
+   yylval->tokentype = STRINGTOK;
+   n = yyleng - 2;            // Remove 2 from the length due to the apostrophes
+   if ( n > 15 ) n = 15;
+   for (i = 0; i < n ; i++)
+      { c = yytext[i + 1];
+            /* if (islower(c)) c = toupper(c); */ /* to raise to upper case */
+      yylval->stringval[i] = c;
+      };
+   yylval->stringval[n] = '\0';
+            /* printf("id  %10s   n = %4d\n", yytext, n); */
+   return(STRING);
+ }
+
 
 // Used to parse floats / doubles
 int install_fnum() {  /* Note -- you may use sscanf for this assignment. */
-  float fnum;
+  float fnum = 0.0;
   yylval = talloc();   /* Make new token, set yylval to point to it */
   yylval->tokentype = NUMBERTOK;
   yylval->basicdt = REAL;
        /* printf("num %10s   n = %4d\n",yytext,yyleng); */
 
   sscanf(yytext, "%f", &fnum);
+  
+  /* Check bounds: float range 1.175495E-38 to 3.402823E+38 */
+  if (fnum != 0.0 && (fnum < 1.175495E-38 && fnum > -1.175495E-38)) {
+      printf("Error: Float is too small\n");
+      fnum = 0.0;
+  } else if (fnum > 3.402823E+38 || fnum < -3.402823E+38) {
+      printf("Error: Float is too large\n");
+      fnum = 0.0;
+  }
+  
   yylval->realval = fnum;
   return(NUMBER);
  }
 
 // Used to parse integers  
 int install_inum() {
-   int inum;
+   long long temp_num;
+   int inum = 0;
    yylval = talloc();   /* Make new token, set yylval to point to it */
    yylval->tokentype = NUMBERTOK;
    yylval->basicdt = INTEGER;
          /* printf("num %10s   n = %4d\n",yytext,yyleng); */
-   sscanf(yytext, "%d", &inum);
+   
+   sscanf(yytext, "%lld", &temp_num);
+   
+   // Check bounds: integer must be <= 2147483647 (2^31 - 1)
+   if (temp_num > 2147483647LL) {
+       printf("Error: Integer is too large\n");
+   } else if (temp_num < 0) {
+       printf("Error: Negative integer not allowed\n");
+   } else {
+       inum = (int)temp_num;
+   }
+   
    yylval->intval = inum;
    return(NUMBER);
    }
