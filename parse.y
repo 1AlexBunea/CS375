@@ -112,7 +112,7 @@ program    :  PROGRAM IDENTIFIER LPAREN idlist RPAREN SEMICOLON vblock DOT  { pa
              |  NUMBER
              |  STRING
              ;
-  variable   : IDENTIFIER
+  variable   : IDENTIFIER                      { $$ = findid($1); }
              ;
   funcall    : IDENTIFIER LPAREN args RPAREN   { $$ = makefuncall($2, $1, $3); }
              ;
@@ -253,6 +253,17 @@ TOKEN findtype(TOKEN tok) { /* find type name */
   tok->symtype = sym;
   return tok;
 }
+
+TOKEN findid(TOKEN tok) { /* the ID token */
+SYMBOL sym = searchst(tok->stringval);
+tok->symentry = sym;
+SYMBOL typ = sym->datatype;
+tok->symtype = typ;
+if ( typ->kind == BASICTYPE ||
+     typ->kind == POINTERSYM)
+    tok->basicdt = typ->basicdt;
+return tok; }
+
 
 TOKEN makefuncall(TOKEN tok, TOKEN fn, TOKEN args)
   { tok->tokentype = OPERATOR;
