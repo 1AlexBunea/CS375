@@ -83,11 +83,20 @@ TOKEN parseresult;
 
 %%
 
-program    :  statement DOT  /* change this! */       { parseresult = $1; }
-             ;
+program    :  PROGRAM IDENTIFIER LPAREN idlist RPAREN SEMICOLON vblock DOT 
+                                       { parseresult = makeprogram($2, $4, $7); }
+           |  PROGRAM IDENTIFIER SEMICOLON vblock DOT
+                                       { parseresult = makeprogram($2, NULL, $4); }
+           |  vblock DOT                        { parseresult = $1; }
+           ;
   statement  :  BEGINBEGIN statement endpart
                                        { $$ = makeprogn($1,cons($2, $3)); }
              |  IF expr THEN statement endif   { $$ = makeif($1, $2, $4, $5); }
+             |  FOR IDENTIFIER ASSIGN expr TO expr DO statement
+                                       { $$ = makefor(1, $1, binop($3, $2, $4), $5, $6, $7, $8); }
+             |  FOR IDENTIFIER ASSIGN expr DOWNTO expr DO statement  
+                                       { $$ = makefor(-1, $1, binop($3, $2, $4), $5, $6, $7, $8); }
+             |  funcall
              |  assignment
              ;
   endpart    :  SEMICOLON statement endpart    { $$ = cons($2, $3); }
@@ -107,9 +116,35 @@ program    :  statement DOT  /* change this! */       { parseresult = $1; }
   factor     :  LPAREN expr RPAREN             { $$ = $2; }
              |  variable
              |  NUMBER
+             |  STRING
              ;
   variable   : IDENTIFIER
              ;
+  funcall    : IDENTIFIER LPAREN args RPAREN   { $$ = makefuncall($2, $1, $3); }
+             ;
+  args       : expr COMMA args                 { $$ = cons($1, $3); }
+             | expr                            { $$ = cons($1, NULL); }
+             | /* empty */                     { $$ = NULL; }
+             ;
+
+  idlist     : IDENTIFIER COMMA idlist         { $$ = cons($1, $3); }
+             | IDENTIFIER                      { $$ = cons($1, NULL); }
+             ;
+  vblock     : VAR varspecs block              { $$ = $3; }
+             | block
+             ;
+  varspecs   : vargroup SEMICOLON varspecs
+             | vargroup SEMICOLON
+             ;
+  vargroup   : idlist COLON type               { instvars($1, $3); }
+             ;
+  type       : simpletype
+             ;
+  simpletype : IDENTIFIER                      { $$ = findtype($1); }
+             ;
+  block      : BEGINBEGIN statement endpart   { $$ = makeprogn($1,cons($2, $3)); }
+             ;
+
 %%
 
 /* You should add your own debugging flags below, and add debugging
@@ -186,9 +221,201 @@ TOKEN makeprogn(TOKEN tok, TOKEN statements)
      return tok;
    }
 
+TOKEN makeprogram(TOKEN name, TOKEN args, TOKEN statements) {
+  TOKEN prog_tok = talloc();
+  TOKEN args_progn = NULL;
+  prog_tok->tokentype = OPERATOR;
+  prog_tok->whichval = PROGRAMOP;
+  prog_tok->operands = name;
+  if (args != NULL) {
+      args_progn = talloc();
+      args_progn->tokentype = OPERATOR;
+      args_progn->whichval = PROGNOP;
+      args_progn->operands = args;
+      name->link = args_progn;
+      args_progn->link = statements;
+  } else {
+      name->link = statements;
+  }
+  if (statements != NULL) statements->link = NULL;
+  return prog_tok;
+}
+
+/* install variables in symbol table */
+void instvars(TOKEN idlist, TOKEN typetok)
+  {  SYMBOL sym, typesym; int align;
+     typesym = typetok->symtype;
+     align = alignsize(typesym);
+     while ( idlist != NULL )   /* for each id */
+       {  sym = insertsym(idlist->stringval);
+          sym->kind = VARSYM;
+          sym->offset =     /* "next" */
+              wordaddress(blockoffs[blocknumber],
+                          align);
+          sym->size = typesym->size;
+          blockoffs[blocknumber] =   /* "next" */
+                         sym->offset + sym->size;
+          sym->datatype = typesym;
+          sym->basicdt = typesym->basicdt;
+          idlist = idlist->link;
+        };
+  }
+
+TOKEN findtype(TOKEN tok) { /* find type name */
+  SYMBOL sym = searchst(tok->stringval);
+  tok->symentry = sym;
+  tok->symtype = sym;
+  return tok;
+}
+
+TOKEN makefuncall(TOKEN tok, TOKEN fn, TOKEN args)
+  { tok->tokentype = OPERATOR;
+    tok->whichval = FUNCALLOP;
+    tok->operands = fn;
+    fn->link = args;
+    return tok;
+  }
+
 int wordaddress(int n, int wordsize)
   { return ((n + wordsize - 1) / wordsize) * wordsize; }
  
+TOKEN makelabel()
+  { TOKEN tok = talloc();
+    TOKEN numtok = talloc();
+    tok->tokentype = OPERATOR;
+    tok->whichval = LABELOP;
+    numtok->tokentype = NUMBERTOK;
+    numtok->intval = labelnumber++;
+    numtok->basicdt = INTEGER;
+    numtok->link = NULL;
+    tok->operands = numtok;
+    return tok;
+  }
+
+TOKEN makegoto(int label)
+  { TOKEN tok = talloc();
+    TOKEN labeltok = talloc();
+    tok->tokentype = OPERATOR;
+    tok->whichval = GOTOOP;
+    labeltok->tokentype = NUMBERTOK;
+    labeltok->intval = label;
+    labeltok->link = NULL;
+    tok->operands = labeltok;
+    return tok;
+  }
+
+TOKEN makeintc(int num)
+  { TOKEN tok = talloc();
+    tok->tokentype = NUMBERTOK;
+    tok->basicdt = INTEGER;
+    tok->intval = num;
+    return tok;
+  }
+
+TOKEN makeplus(TOKEN lhs, TOKEN rhs, TOKEN tok)
+  { if (tok == NULL) tok = talloc();
+    tok->tokentype = OPERATOR;
+    tok->whichval = PLUSOP;
+    tok->operands = lhs;
+    lhs->link = rhs;
+    rhs->link = NULL;
+    return tok;
+  }
+
+TOKEN makefor(int sign, TOKEN tok, TOKEN asg, TOKEN tokb, TOKEN endexpr,
+              TOKEN tokc, TOKEN statement)
+  { TOKEN label_tok, if_tok, progn_tok, cond_tok, inner_progn, increment, 
+          assign2, goto_stmt, loop_var, increment_expr, one_tok;
+    int loop_label;
+    
+    /* Generate label number */
+    loop_label = labelnumber;  /* get current label number before incrementing */
+    
+    /* Create label token */
+    label_tok = makelabel();   /* this will increment labelnumber */
+    
+    /* Get loop variable from assignment */
+    loop_var = asg->operands;  /* left side of assignment */
+    
+    /* Create condition: (for TO) <= or (for DOWNTO) >= */
+    cond_tok = talloc();
+    cond_tok->tokentype = OPERATOR;
+    if (sign == 1) {
+        cond_tok->whichval = LEOP;  /* <= for TO */
+    } else {
+        cond_tok->whichval = GEOP;  /* >= for DOWNTO */
+    }
+    
+    /* Copy loop variable for condition */
+    TOKEN loop_var_copy = talloc();
+    *loop_var_copy = *loop_var;  /* copy the token */
+    
+    cond_tok->operands = loop_var_copy;
+    loop_var_copy->link = endexpr;
+    endexpr->link = NULL;
+    
+    /* Create increment: i := i + 1 (or i := i - 1 for DOWNTO) */
+    one_tok = makeintc(1);
+    
+    /* Copy loop variable again for increment */
+    TOKEN loop_var_copy2 = talloc();
+    *loop_var_copy2 = *loop_var;
+    
+    TOKEN loop_var_copy3 = talloc();
+    *loop_var_copy3 = *loop_var;
+    
+    if (sign == 1) {
+        increment_expr = makeplus(loop_var_copy2, one_tok, NULL);
+    } else {
+        increment_expr = talloc();
+        increment_expr->tokentype = OPERATOR;
+        increment_expr->whichval = MINUSOP;
+        increment_expr->operands = loop_var_copy2;
+        loop_var_copy2->link = one_tok;
+        one_tok->link = NULL;
+    }
+    
+    assign2 = talloc();
+    assign2->tokentype = OPERATOR;
+    assign2->whichval = ASSIGNOP;
+    assign2->operands = loop_var_copy3;
+    loop_var_copy3->link = increment_expr;
+    increment_expr->link = NULL;
+    
+    /* Create goto statement */
+    goto_stmt = makegoto(loop_label);
+    
+    /* Create inner progn: (progn statement assignment goto) */
+    inner_progn = talloc();
+    inner_progn->tokentype = OPERATOR;
+    inner_progn->whichval = PROGNOP;
+    inner_progn->operands = statement;
+    statement->link = assign2;
+    assign2->link = goto_stmt;
+    goto_stmt->link = NULL;
+    
+    /* Create if statement: (if condition inner_progn) */
+    if_tok = talloc();
+    if_tok->tokentype = OPERATOR;
+    if_tok->whichval = IFOP;
+    if_tok->operands = cond_tok;
+    cond_tok->link = inner_progn;
+    inner_progn->link = NULL;
+    
+    /* Create outer progn: (progn assignment label if) */
+    progn_tok = tok;  /* reuse tok */
+    progn_tok->tokentype = OPERATOR;
+    progn_tok->whichval = PROGNOP;
+    progn_tok->operands = asg;
+    asg->link = label_tok;
+    label_tok->link = if_tok;
+    if_tok->link = NULL;
+    
+    return progn_tok;
+  }
+
+
+
 void yyerror (char const *s)
 {
   fprintf (stderr, "%s\n", s);
