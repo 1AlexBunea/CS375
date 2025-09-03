@@ -83,19 +83,13 @@ TOKEN parseresult;
 
 %%
 
-program    :  PROGRAM IDENTIFIER LPAREN idlist RPAREN SEMICOLON vblock DOT 
-                                       { parseresult = makeprogram($2, $4, $7); }
-           |  PROGRAM IDENTIFIER SEMICOLON vblock DOT
-                                       { parseresult = makeprogram($2, NULL, $4); }
+program    :  PROGRAM IDENTIFIER LPAREN idlist RPAREN SEMICOLON vblock DOT  { parseresult = makeprogram($2, $4, $7); }
            |  vblock DOT                        { parseresult = $1; }
            ;
-  statement  :  BEGINBEGIN statement endpart
-                                       { $$ = makeprogn($1,cons($2, $3)); }
+  statement  :  BEGINBEGIN statement endpart { $$ = makeprogn($1,cons($2, $3)); }
              |  IF expr THEN statement endif   { $$ = makeif($1, $2, $4, $5); }
-             |  FOR IDENTIFIER ASSIGN expr TO expr DO statement
-                                       { $$ = makefor(1, $1, binop($3, $2, $4), $5, $6, $7, $8); }
-             |  FOR IDENTIFIER ASSIGN expr DOWNTO expr DO statement  
-                                       { $$ = makefor(-1, $1, binop($3, $2, $4), $5, $6, $7, $8); }
+             |  FOR IDENTIFIER ASSIGN expr TO expr DO statement { $$ = makefor(1, $1, binop($3, $2, $4), $5, $6, $7, $8); }
+             |  FOR IDENTIFIER ASSIGN expr DOWNTO expr DO statement { $$ = makefor(-1, $1, binop($3, $2, $4), $5, $6, $7, $8); }
              |  funcall
              |  assignment
              ;
@@ -223,20 +217,12 @@ TOKEN makeprogn(TOKEN tok, TOKEN statements)
 
 TOKEN makeprogram(TOKEN name, TOKEN args, TOKEN statements) {
   TOKEN prog_tok = talloc();
-  TOKEN args_progn = NULL;
+  TOKEN args_progn = makeprogn(talloc(), args);
   prog_tok->tokentype = OPERATOR;
   prog_tok->whichval = PROGRAMOP;
   prog_tok->operands = name;
-  if (args != NULL) {
-      args_progn = talloc();
-      args_progn->tokentype = OPERATOR;
-      args_progn->whichval = PROGNOP;
-      args_progn->operands = args;
-      name->link = args_progn;
-      args_progn->link = statements;
-  } else {
-      name->link = statements;
-  }
+  name->link = args_progn;
+  args_progn->link = statements;
   if (statements != NULL) statements->link = NULL;
   return prog_tok;
 }
@@ -413,8 +399,6 @@ TOKEN makefor(int sign, TOKEN tok, TOKEN asg, TOKEN tokb, TOKEN endexpr,
     
     return progn_tok;
   }
-
-
 
 void yyerror (char const *s)
 {
